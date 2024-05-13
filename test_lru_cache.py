@@ -54,6 +54,20 @@ def test_list(cache: LRUCache) -> None:
     assert list(cache) == ["key1", "key2", "key3"]
 
 
+def test_keys(cache: LRUCache) -> None:
+    cache["key1"] = 1
+    cache["key2"] = 2
+    cache["key3"] = 3
+    assert list(cache.keys()) == ["key1", "key2", "key3"]
+
+
+def test_values(cache: LRUCache) -> None:
+    cache["key1"] = 1
+    cache["key2"] = 2
+    cache["key3"] = 3
+    assert list(cache.values()) == [1, 2, 3]
+
+
 def test_items(cache: LRUCache) -> None:
     cache["key1"] = 1
     cache["key2"] = 2
@@ -61,14 +75,33 @@ def test_items(cache: LRUCache) -> None:
     assert list(cache.items()) == [("key1", 1), ("key2", 2), ("key3", 3)]
 
 
+def test_get(cache: LRUCache) -> None:
+    assert "key" not in cache
+    assert cache.get("key", 42) == 42
+    assert "key" not in cache
+
+    cache["key"] = 1
+    assert "key" in cache
+    assert cache.get("key") == 1
+
+
+def test_clear(cache: LRUCache) -> None:
+    cache["key1"] = 1
+    cache["key2"] = 2
+    cache["key3"] = 3
+    assert len(cache) == 3
+    cache.clear()
+    assert len(cache) == 0
+
+
 def test_get_or_load(cache: LRUCache) -> None:
     def load_value() -> int:
         return 42
 
     assert len(cache) == 0
-    assert cache.get("key", load_value) == 42
+    assert cache.get_or_load("key", load_value) == 42
     assert len(cache) == 1
-    assert cache.get("key", load_value) == 42
+    assert cache.get_or_load("key", load_value) == 42
     assert len(cache) == 1
 
 
