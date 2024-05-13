@@ -42,3 +42,5 @@ jobs:
           cache["count"] = count
           print(f"Count: {count}")
           cache.save()
+        env:
+          PYTHONPATH: ${{ github.workspace }}
