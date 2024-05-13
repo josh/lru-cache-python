@@ -8,6 +8,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
@@ -29,3 +30,52 @@ jobs:
       - name: Run tests
         run: |
           pytest
+
+  ruff:
+    runs-on: ubuntu-latest
+
+    env:
+      RUFF_OUTPUT_FORMAT: github
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          pip install '.[test]'
+
+      - name: Ruff Formatter
+        run: |
+          ruff format --diff .
+
+      - name: Ruff Linter
+        run: |
+          ruff check .
+
+  mypy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          pip install '.[test]'
+
+      - name: mypy
+        run: |
+          mypy --install-types --non-interactive .
