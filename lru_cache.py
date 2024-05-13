@@ -2,7 +2,7 @@ import atexit
 import logging
 import pickle
 from collections import OrderedDict
-from collections.abc import Callable, Hashable
+from collections.abc import Callable, Hashable, Iterator
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -110,6 +110,10 @@ class LRUCache:
     def __contains__(self, key: Hashable) -> bool:
         """Return True if key is in the cache."""
         return key in self._data
+
+    def __iter__(self) -> Iterator[Hashable]:
+        """Iterate over keys in the cache."""
+        return iter(self._data)
 
     def __len__(self) -> int:
         """Return the number of items in the cache."""
