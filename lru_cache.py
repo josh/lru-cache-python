@@ -101,6 +101,12 @@ class LRUCache:
         self._data[key] = value
         self._data.move_to_end(key, last=True)
 
+    def __delitem__(self, key: Hashable) -> None:
+        """Delete key from cache."""
+        _logger.debug("del key=%s", key)
+        self._did_change = True
+        del self._data[key]
+
     def __contains__(self, key: Hashable) -> bool:
         """Return True if key is in the cache."""
         return key in self._data
