@@ -37,6 +37,7 @@ def test_contains(memory_cache: LRUCache) -> None:
     assert "key" not in memory_cache
     memory_cache["key"] = 1
     assert "key" in memory_cache
+    assert "key2" not in memory_cache
 
 
 def test_len(memory_cache: LRUCache) -> None:
