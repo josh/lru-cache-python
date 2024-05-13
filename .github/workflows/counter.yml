@@ -1,0 +1,44 @@
+name: Counter
+
+on: [workflow_dispatch]
+
+jobs:
+  incr:
+    runs-on: ubuntu-latest
+    concurrency: counter
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --requirement requirements.txt
+
+      - name: Load counter cache
+        uses: actions/cache@v4
+        with:
+          path: cache.pickle
+          key: cache-${{ github.run_id }}
+          restore-keys: |
+            cache-
+
+      - name: Increment counter
+        shell: python
+        run: |
+          from pathlib import Path
+
+          from lru_cache import LRUCache
+
+          path = Path("cache.pickle")
+          cache = LRUCache(path=path)
+          count = cache["count"] or 0
+          count += 1
+          cache["count"] = count
+          print(f"Count: {count}")
+          cache.save()
