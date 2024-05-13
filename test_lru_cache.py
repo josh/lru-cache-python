@@ -2,90 +2,144 @@ from pathlib import Path
 
 import pytest
 
+import lru_cache
 from lru_cache import LRUCache
 
 
 @pytest.fixture()
-def memory_cache() -> LRUCache:
+def cache() -> LRUCache:
     return LRUCache(max_bytesize=1024)
 
 
 @pytest.fixture()
 def file_cache(tmp_path: Path) -> LRUCache:
-    return LRUCache(path=tmp_path / "cache.pickle", max_bytesize=1024)
+    return LRUCache(filename=tmp_path / "cache.pickle", max_bytesize=1024)
 
 
-def test_item_get_set(memory_cache: LRUCache) -> None:
-    assert memory_cache["key"] is None
+def test_item_get_set(cache: LRUCache) -> None:
+    assert cache["key"] is None
 
-    memory_cache["key"] = 1
-    assert memory_cache["key"] == 1
-    assert memory_cache["key"] == 1
+    cache["key"] = 1
+    assert cache["key"] == 1
+    assert cache["key"] == 1
 
-    memory_cache["key"] = 2
-    assert memory_cache["key"] == 2
-
-
-def test_item_del(memory_cache: LRUCache) -> None:
-    memory_cache["key"] = 1
-    assert memory_cache["key"] == 1
-    del memory_cache["key"]
-    assert memory_cache["key"] is None
+    cache["key"] = 2
+    assert cache["key"] == 2
 
 
-def test_contains(memory_cache: LRUCache) -> None:
-    assert "key" not in memory_cache
-    memory_cache["key"] = 1
-    assert "key" in memory_cache
-    assert "key2" not in memory_cache
+def test_item_del(cache: LRUCache) -> None:
+    cache["key"] = 1
+    assert cache["key"] == 1
+    del cache["key"]
+    assert cache["key"] is None
 
 
-def test_len(memory_cache: LRUCache) -> None:
-    assert len(memory_cache) == 0
-    memory_cache["key"] = 1
-    assert len(memory_cache) == 1
+def test_contains(cache: LRUCache) -> None:
+    assert "key" not in cache
+    cache["key"] = 1
+    assert "key" in cache
+    assert "key2" not in cache
 
 
-def test_list(memory_cache: LRUCache) -> None:
-    memory_cache["key1"] = 1
-    memory_cache["key2"] = 2
-    memory_cache["key3"] = 3
-    assert list(memory_cache) == ["key1", "key2", "key3"]
+def test_len(cache: LRUCache) -> None:
+    assert len(cache) == 0
+    cache["key"] = 1
+    assert len(cache) == 1
 
 
-def test_items(memory_cache: LRUCache) -> None:
-    memory_cache["key1"] = 1
-    memory_cache["key2"] = 2
-    memory_cache["key3"] = 3
-    assert list(memory_cache.items()) == [("key1", 1), ("key2", 2), ("key3", 3)]
+def test_list(cache: LRUCache) -> None:
+    cache["key1"] = 1
+    cache["key2"] = 2
+    cache["key3"] = 3
+    assert list(cache) == ["key1", "key2", "key3"]
 
 
-def test_get_or_load(memory_cache: LRUCache) -> None:
+def test_items(cache: LRUCache) -> None:
+    cache["key1"] = 1
+    cache["key2"] = 2
+    cache["key3"] = 3
+    assert list(cache.items()) == [("key1", 1), ("key2", 2), ("key3", 3)]
+
+
+def test_get_or_load(cache: LRUCache) -> None:
     def load_value() -> int:
         return 42
 
-    assert len(memory_cache) == 0
-    assert memory_cache.get("key", load_value) == 42
-    assert len(memory_cache) == 1
-    assert memory_cache.get("key", load_value) == 42
-    assert len(memory_cache) == 1
+    assert len(cache) == 0
+    assert cache.get("key", load_value) == 42
+    assert len(cache) == 1
+    assert cache.get("key", load_value) == 42
+    assert len(cache) == 1
 
 
-def test_trim(file_cache: LRUCache) -> None:
+def test_trim(cache: LRUCache) -> None:
     for i in range(300):
-        file_cache[i] = i
-    assert file_cache.bytesize() > 1024
-    file_cache.trim()
-    assert file_cache.bytesize() <= 1024
+        cache[i] = i
+    assert cache.bytesize() > 1024
+    cache.trim()
+    assert cache.bytesize() <= 1024
 
 
-def test_decorator(memory_cache: LRUCache) -> None:
-    @memory_cache
+def test_decorator(cache: LRUCache) -> None:
+    @cache
     def fib(n: int) -> int:
         if n < 2:
             return n
         return fib(n - 1) + fib(n - 2)
 
-    assert len(memory_cache) == 0
+    assert len(cache) == 0
     assert fib(10) == 55
-    assert len(memory_cache) == 11
+    assert len(cache) == 11
+
+
+def test_open_managed(tmp_path: Path) -> None:
+    path = tmp_path / "cache.pickle"
+    assert not path.exists()
+
+    cache = lru_cache.open(path)
+    cache["key"] = 1
+    assert cache["key"] == 1
+
+    assert not path.exists()
+    cache.close()
+    assert path.exists()
+
+    cache = lru_cache.open(tmp_path / "cache.pickle")
+    assert cache["key"] == 1
+    assert path.exists()
+
+
+def test_open_context(tmp_path: Path) -> None:
+    path = tmp_path / "cache.pickle"
+    assert not path.exists()
+
+    with lru_cache.open(path) as cache:
+        cache["key"] = 1
+        assert cache["key"] == 1
+    assert path.exists()
+
+    with lru_cache.open(tmp_path / "cache.pickle") as cache:
+        assert cache["key"] == 1
+    assert path.exists()
+
+
+def test_open_context_saves_on_exception(tmp_path: Path) -> None:
+    path = tmp_path / "cache.pickle"
+    assert not path.exists()
+
+    try:
+        with lru_cache.open(path) as cache:
+            cache["key"] = 1
+            raise Exception("oops")
+    except Exception:
+        pass
+    finally:
+        assert path.exists()
+
+
+def test_open_doesnt_write_empty_cache(tmp_path: Path) -> None:
+    path = tmp_path / "cache.pickle"
+    assert not path.exists()
+    with lru_cache.open(path) as cache:
+        assert len(cache) == 0
+    assert not path.exists()

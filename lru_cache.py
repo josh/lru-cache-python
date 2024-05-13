@@ -4,6 +4,7 @@ import pickle
 from collections import OrderedDict
 from collections.abc import Callable, Hashable, Iterator
 from pathlib import Path
+from types import TracebackType
 from typing import Any, ParamSpec, TypeVar, cast
 
 __author__ = "Joshua Peek"
@@ -23,19 +24,21 @@ R = TypeVar("R")
 class LRUCache:
     """Persisted least recently used key-value cache."""
 
-    path: Path | None
+    filename: Path | None
     _data: OrderedDict[Hashable, Any]
     _max_bytesize: int
     _did_change: bool = False
 
     def __init__(
         self,
-        path: Path | None = None,
+        filename: Path | str | None = None,
         max_bytesize: int = 1024 * 1024,  # 1 MB
         save_on_exit: bool = False,
     ) -> None:
         """Create a new LRUCache."""
-        self.path = path
+        self.filename = None
+        if filename:
+            self.filename = Path(filename)
         self._data = OrderedDict()
         self._max_bytesize = max_bytesize
         self._load()
@@ -43,20 +46,20 @@ class LRUCache:
             _caches_to_save.append(self)
 
     def _load(self) -> None:
-        if self.path is None:
+        if self.filename is None:
             return
 
-        if not self.path.exists():
-            _logger.debug("persisted cache not found: %s", self.path)
+        if not self.filename.exists():
+            _logger.debug("persisted cache not found: %s", self.filename)
             return
 
-        with self.path.open("rb") as f:
+        with self.filename.open("rb") as f:
             self._data.update(pickle.load(f))
         self._did_change = False
 
     def save(self) -> None:
         """Save the cache to disk."""
-        if not self.path:
+        if not self.filename:
             _logger.error("failed to save LRU cache: no path provided")
             return
 
@@ -65,10 +68,10 @@ class LRUCache:
             return
 
         self.trim()
-        _logger.debug("saving cache: %s", self.path)
-        if isinstance(self.path, Path):
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.open("wb") as f:
+        _logger.debug("saving cache: %s", self.filename)
+        if isinstance(self.filename, Path):
+            self.filename.parent.mkdir(parents=True, exist_ok=True)
+        with self.filename.open("wb") as f:
             pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
 
     def trim(self) -> int:
@@ -151,6 +154,24 @@ class LRUCache:
             return cast(R, value)
 
         return _inner
+
+    def close(self) -> None:
+        self.save()
+
+    def __enter__(self) -> "LRUCache":
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self.save()
+
+
+def open(filename: Path | str) -> LRUCache:
+    return LRUCache(filename=filename)
 
 
 def _save_caches() -> None:
