@@ -27,8 +27,9 @@ import atexit
 import logging
 import pickle
 from collections import OrderedDict
+from collections.abc import Callable, Hashable
 from pathlib import Path
-from typing import Any, Callable, Hashable, TypeVar
+from typing import Any, TypeVar
 
 _logger = logging.getLogger("lru_cache")
 _caches_to_save: list["LRUCache"] = []
