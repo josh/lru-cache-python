@@ -4,7 +4,7 @@ import pickle
 from collections import OrderedDict
 from collections.abc import Callable, Hashable, Iterator
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any
 
 __author__ = "Joshua Peek"
 __url__ = "https://raw.githubusercontent.com/josh/py-lru-cache/main/lru_cache.py"
@@ -15,7 +15,6 @@ _logger = logging.getLogger("lru_cache")
 _caches_to_save: list["LRUCache"] = []
 
 _SENTINEL = object()
-T = TypeVar("T")
 
 
 class LRUCache:
@@ -127,9 +126,9 @@ class LRUCache:
         """Return the persisted size of the cache in bytes."""
         return len(pickle.dumps(self._data))
 
-    def get(self, key: Hashable, load_value: Callable[[], T]) -> T:
+    def get(self, key: Hashable, load_value: Callable[[], Any]) -> Any:
         """Get value for key in cache, else load the value and store it in the cache."""
-        value: T = self._data.get(key, _SENTINEL)
+        value = self._data.get(key, _SENTINEL)
         if value is _SENTINEL:
             _logger.debug("miss key=%s", key)
             value = load_value()
