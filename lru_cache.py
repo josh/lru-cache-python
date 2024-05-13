@@ -115,6 +115,10 @@ class LRUCache:
         """Iterate over keys in the cache."""
         return iter(self._data)
 
+    def items(self) -> Iterator[tuple[Hashable, Any]]:
+        """Iterate over key-value pairs in the cache."""
+        yield from self._data.items()
+
     def __len__(self) -> int:
         """Return the number of items in the cache."""
         return len(self._data)

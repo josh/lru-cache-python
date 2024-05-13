@@ -53,6 +53,13 @@ def test_list(memory_cache: LRUCache) -> None:
     assert list(memory_cache) == ["key1", "key2", "key3"]
 
 
+def test_items(memory_cache: LRUCache) -> None:
+    memory_cache["key1"] = 1
+    memory_cache["key2"] = 2
+    memory_cache["key3"] = 3
+    assert list(memory_cache.items()) == [("key1", 1), ("key2", 2), ("key3", 3)]
+
+
 def test_get_or_load(memory_cache: LRUCache) -> None:
     def load_value() -> int:
         return 42
