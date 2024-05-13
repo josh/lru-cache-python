@@ -1,0 +1,25 @@
+[project]
+name = "lru-cache"
+version = "0.1"
+description = "Persisted LRU cache"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{ name="Joshua Peek" }]
+license = { file="LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License"
+]
+dependencies = []
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://github.com/josh/lru-cache"
+Changelog = "https://github.com/josh/lru-cache/releases"
+Issues = "https://github.com/josh/lru-cache/issues"
+CI = "https://github.com/josh/lru-cache/actions"
+
+[project.optional-dependencies]
+test = ["pytest"]
