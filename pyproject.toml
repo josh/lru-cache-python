@@ -3,4 +3,4 @@ name = "lru-cache"
 requires-python = ">=3.10"
 
 [tool.ruff.lint]
-extend-select = ["I", "UP"]
+extend-select = ["I", "UP", "LOG", "G", "PT", "SIM", "TCH"]
