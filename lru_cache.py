@@ -4,7 +4,7 @@ import pickle
 from collections import OrderedDict
 from collections.abc import Callable, Hashable, Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, ParamSpec, TypeVar, cast
 
 __author__ = "Joshua Peek"
 __url__ = "https://raw.githubusercontent.com/josh/py-lru-cache/main/lru_cache.py"
@@ -15,6 +15,9 @@ _logger = logging.getLogger("lru_cache")
 _caches_to_save: list["LRUCache"] = []
 
 _SENTINEL = object()
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class LRUCache:
@@ -140,6 +143,14 @@ class LRUCache:
             self._did_change = True
             self._data.move_to_end(key, last=True)
             return value
+
+    def __call__(self, func: Callable[P, R]) -> Callable[P, R]:
+        def _inner(*args: P.args, **kwargs: P.kwargs) -> R:
+            key = (args, frozenset(kwargs.items()))
+            value = self.get(key, lambda: func(*args, **kwargs))
+            return cast(R, value)
+
+        return _inner
 
 
 def _save_caches() -> None:

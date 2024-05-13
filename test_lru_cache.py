@@ -77,3 +77,15 @@ def test_trim(file_cache: LRUCache) -> None:
     assert file_cache.bytesize() > 1024
     file_cache.trim()
     assert file_cache.bytesize() <= 1024
+
+
+def test_decorator(memory_cache: LRUCache) -> None:
+    @memory_cache
+    def fib(n: int) -> int:
+        if n < 2:
+            return n
+        return fib(n - 1) + fib(n - 2)
+
+    assert len(memory_cache) == 0
+    assert fib(10) == 55
+    assert len(memory_cache) == 11
