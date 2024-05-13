@@ -3,6 +3,7 @@ import logging
 import pickle
 from collections import OrderedDict
 from collections.abc import Callable, Hashable, Iterator
+from functools import _make_key, update_wrapper
 from pathlib import Path
 from types import TracebackType
 from typing import Any, ParamSpec, TypeVar, cast
@@ -16,6 +17,7 @@ _logger = logging.getLogger("lru_cache")
 _caches_to_save: list["LRUCache"] = []
 
 _SENTINEL = object()
+_KWD_MARK = ("__KWD_MARK__",)
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -148,12 +150,14 @@ class LRUCache:
             return value
 
     def __call__(self, func: Callable[P, R]) -> Callable[P, R]:
-        def _inner(*args: P.args, **kwargs: P.kwargs) -> R:
-            key = (args, frozenset(kwargs.items()))
-            value = self.get(key, lambda: func(*args, **kwargs))
+        def _inner(*args: P.args, **kwds: P.kwargs) -> R:
+            keys = _make_key(args=args, kwds=kwds, typed=True, kwd_mark=_KWD_MARK)
+            assert isinstance(keys, list)
+            key = (func.__module__, func.__name__, *keys)
+            value = self.get(key, lambda: func(*args, **kwds))
             return cast(R, value)
 
-        return _inner
+        return update_wrapper(_inner, func)
 
     def close(self) -> None:
         self.save()
