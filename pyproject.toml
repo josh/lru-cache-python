@@ -22,4 +22,8 @@ Issues = "https://github.com/josh/lru-cache/issues"
 CI = "https://github.com/josh/lru-cache/actions"
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = [
+    "mypy",
+    "pytest",
+    "ruff",
+]
