@@ -75,4 +75,4 @@ jobs:
 
       - name: mypy
         run: |
-          mypy --install-types --non-interactive .
+          mypy --strict .
