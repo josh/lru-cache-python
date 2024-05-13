@@ -31,10 +31,12 @@ jobs:
       - name: Increment counter
         shell: python
         run: |
+          import logging
           from pathlib import Path
 
           from lru_cache import LRUCache
 
+          logging.basicConfig(level=logging.DEBUG)
           path = Path("cache.pickle")
           cache = LRUCache(path=path)
           count = cache["count"] or 0
