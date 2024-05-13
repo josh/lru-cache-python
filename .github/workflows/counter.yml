@@ -32,17 +32,15 @@ jobs:
         shell: python
         run: |
           import logging
-          from pathlib import Path
 
-          from lru_cache import LRUCache
-
+          import lru_cache
+          
           logging.basicConfig(level=logging.DEBUG)
-          path = Path("cache.pickle")
-          cache = LRUCache(path=path)
-          count = cache["count"] or 0
-          count += 1
-          cache["count"] = count
-          print(f"Count: {count}")
-          cache.save()
+          
+          with lru_cache.open("cache.pickle") as cache:
+              count = cache["count"] or 0
+              count += 1
+              cache["count"] = count
+              print(f"Count: {count}")
         env:
           PYTHONPATH: ${{ github.workspace }}
