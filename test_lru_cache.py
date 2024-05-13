@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from lru_cache import LRUCache
@@ -8,7 +10,8 @@ def memory_cache() -> LRUCache:
     return LRUCache(max_bytesize=1024)
 
 
-def file_cache(tmp_path) -> LRUCache:
+@pytest.fixture()
+def file_cache(tmp_path: Path) -> LRUCache:
     return LRUCache(path=tmp_path / "cache.pickle", max_bytesize=1024)
 
 
@@ -42,6 +45,13 @@ def test_len(memory_cache: LRUCache) -> None:
     assert len(memory_cache) == 1
 
 
+def test_list(memory_cache: LRUCache) -> None:
+    memory_cache["key1"] = 1
+    memory_cache["key2"] = 2
+    memory_cache["key3"] = 3
+    assert list(memory_cache) == ["key1", "key2", "key3"]
+
+
 def test_get_or_load(memory_cache: LRUCache) -> None:
     def load_value() -> int:
         return 42
@@ -53,9 +63,9 @@ def test_get_or_load(memory_cache: LRUCache) -> None:
     assert len(memory_cache) == 1
 
 
-def test_trim(memory_cache: LRUCache) -> None:
+def test_trim(file_cache: LRUCache) -> None:
     for i in range(300):
-        memory_cache[i] = i
-    assert memory_cache.bytesize() > 1024
-    memory_cache.trim()
-    assert memory_cache.bytesize() <= 1024
+        file_cache[i] = i
+    assert file_cache.bytesize() > 1024
+    file_cache.trim()
+    assert file_cache.bytesize() <= 1024
