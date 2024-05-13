@@ -3,7 +3,7 @@ import pytest
 from lru_cache import LRUCache
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def cache() -> LRUCache:
     return LRUCache(max_bytesize=1024)
 
