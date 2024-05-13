@@ -12,6 +12,7 @@ from collections.abc import (
     ValuesView,
 )
 from functools import _make_key, update_wrapper
+from io import BytesIO
 from pathlib import Path
 from types import TracebackType
 from typing import Any, ParamSpec, TypeVar, cast
@@ -158,7 +159,13 @@ class LRUCache(MutableMapping[Hashable, Any]):
         """Trim the cache to fit within the max bytesize."""
         sorted_keys = list(self._data.keys())
         count = 0
-        while self.bytesize() > self._max_bytesize:
+        buf = BytesIO()
+        while True:
+            buf.seek(0)
+            p = pickle.Pickler(buf, protocol=pickle.HIGHEST_PROTOCOL)
+            p.dump(self._data)
+            if buf.tell() < self._max_bytesize:
+                break
             key = sorted_keys.pop(0)
             self._did_change = True
             del self._data[key]
@@ -169,7 +176,10 @@ class LRUCache(MutableMapping[Hashable, Any]):
 
     def bytesize(self) -> int:
         """Return the persisted size of the cache in bytes."""
-        return len(pickle.dumps(self._data))
+        buf = BytesIO()
+        p = pickle.Pickler(buf, protocol=pickle.HIGHEST_PROTOCOL)
+        p.dump(self._data)
+        return buf.tell()
 
     def get_or_load(self, key: Hashable, load_value: Callable[[], Any]) -> Any:
         """Get value for key in cache, else load the value and store it in the cache."""
