@@ -245,8 +245,7 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
 
         self.trim()
         _logger.debug("saving cache: %s", self.filename)
-        if isinstance(self.filename, Path):
-            self.filename.parent.mkdir(parents=True, exist_ok=True)
+        self.filename.parent.mkdir(parents=True, exist_ok=True)
         with self.filename.open("wb") as f:
             pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
 
