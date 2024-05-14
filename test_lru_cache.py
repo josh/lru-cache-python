@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 import lru_cache
-from lru_cache import LRUCache
+from lru_cache import LRUCache, PersistentLRUCache
 
 
 @pytest.fixture()
@@ -12,8 +12,19 @@ def cache() -> LRUCache:
 
 
 @pytest.fixture()
-def file_cache(tmp_path: Path) -> LRUCache:
-    return LRUCache(filename=tmp_path / "cache.pickle", max_bytesize=1024)
+def file_cache(tmp_path: Path) -> PersistentLRUCache:
+    return PersistentLRUCache(filename=tmp_path / "cache.pickle", max_bytesize=1024)
+
+
+def test_eq(cache: LRUCache) -> None:
+    assert cache == cache
+    assert cache != LRUCache()
+    assert cache != 42
+
+
+def test_hash(cache: LRUCache) -> None:
+    assert hash(cache) == hash(cache)
+    assert hash(cache) != hash(LRUCache())
 
 
 def test_item_get_set(cache: LRUCache) -> None:

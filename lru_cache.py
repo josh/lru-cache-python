@@ -1,6 +1,8 @@
 import atexit
+import contextlib
 import logging
 import pickle
+import sys
 from collections import OrderedDict
 from collections.abc import (
     Callable,
@@ -16,6 +18,7 @@ from io import BytesIO
 from pathlib import Path
 from types import TracebackType
 from typing import Any, ParamSpec, TypeVar, cast
+from weakref import WeakSet
 
 __author__ = "Joshua Peek"
 __url__ = "https://raw.githubusercontent.com/josh/py-lru-cache/main/lru_cache.py"
@@ -23,7 +26,7 @@ __license__ = "MIT"
 __copyright__ = "Copyright 2024 Joshua Peek"
 
 _logger = logging.getLogger("lru_cache")
-_caches_to_save: list["LRUCache"] = []
+_caches_to_close_atexit: WeakSet["PersistentLRUCache"] = WeakSet()
 
 _SENTINEL = object()
 _KWD_MARK = ("__KWD_MARK__",)
@@ -31,35 +34,38 @@ _KWD_MARK = ("__KWD_MARK__",)
 P = ParamSpec("P")
 R = TypeVar("R")
 
+DEFAULT_MAX_ITEMS = sys.maxsize
+DEFAULT_MAX_BYTESIZE = 1024 * 1024 * 1024  # 1 GB
+
 
 class LRUCache(MutableMapping[Hashable, Any]):
-    """Persisted least recently used key-value cache."""
+    """An LRU cache that acts like a dict and a configurable max size."""
 
-    filename: Path | None
     _data: OrderedDict[Hashable, Any]
+    _max_items: int
     _max_bytesize: int
     _did_change: bool = False
 
     def __init__(
         self,
-        filename: Path | str | None = None,
-        max_bytesize: int = 1024 * 1024,  # 1 MB
-        save_on_exit: bool = False,
+        max_items: int = DEFAULT_MAX_ITEMS,
+        max_bytesize: int = DEFAULT_MAX_BYTESIZE,
     ) -> None:
         """Create a new LRUCache."""
-        self.filename = None
-        if filename:
-            self.filename = Path(filename)
         self._data = OrderedDict()
+        self._max_items = max_items
         self._max_bytesize = max_bytesize
-        self._load()
-        if save_on_exit:
-            _caches_to_save.append(self)
 
     def __repr__(self) -> str:
         count = len(self)
         size = self.bytesize()
         return f"<LRUCache {count} items, {size} bytes>"
+
+    def __eq__(self, other: Any) -> bool:
+        return other is self
+
+    def __hash__(self) -> int:
+        return id(self)
 
     def __contains__(self, key: Hashable) -> bool:
         """Return True if key is in the cache."""
@@ -128,38 +134,6 @@ class LRUCache(MutableMapping[Hashable, Any]):
         self._did_change = True
         self._data.clear()
 
-    def _load(self) -> None:
-        if self.filename is None:
-            return
-
-        if not self.filename.exists():
-            _logger.debug("persisted cache not found: %s", self.filename)
-            return
-
-        with self.filename.open("rb") as f:
-            self._data.update(pickle.load(f))
-        self._did_change = False
-
-    def save(self) -> None:
-        """Save the cache to disk."""
-        if not self.filename:
-            _logger.error("failed to save LRU cache: no path provided")
-            return
-
-        if self._did_change is False:
-            _logger.info("no changes to save")
-            return
-
-        self.trim()
-        _logger.debug("saving cache: %s", self.filename)
-        if isinstance(self.filename, Path):
-            self.filename.parent.mkdir(parents=True, exist_ok=True)
-        with self.filename.open("wb") as f:
-            pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
-
-    def close(self) -> None:
-        self.save()
-
     def trim(self) -> int:
         """Trim the cache to fit within the max bytesize."""
         sorted_keys = list(self._data.keys())
@@ -211,6 +185,25 @@ class LRUCache(MutableMapping[Hashable, Any]):
 
         return update_wrapper(_inner, func)
 
+
+class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]):
+    """A managed LRUCache that is persist to disk."""
+
+    filename: Path
+
+    def __init__(
+        self,
+        filename: Path | str,
+        max_items: int = DEFAULT_MAX_ITEMS,
+        max_bytesize: int = DEFAULT_MAX_BYTESIZE,
+        close_on_exit: bool = True,
+    ) -> None:
+        self.filename = Path(filename)
+        super().__init__(max_items=max_items, max_bytesize=max_bytesize)
+        self._load()
+        if close_on_exit:
+            _caches_to_close_atexit.add(self)
+
     def __enter__(self) -> "LRUCache":
         return self
 
@@ -220,16 +213,41 @@ class LRUCache(MutableMapping[Hashable, Any]):
         exc_value: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
+        self.close()
+
+    def _load(self) -> None:
+        if not self.filename.exists():
+            _logger.debug("persisted cache not found: %s", self.filename)
+            return
+
+        with self.filename.open("rb") as f:
+            self._data.update(pickle.load(f))
+        self._did_change = False
+
+    def save(self) -> None:
+        """Save the cache to disk."""
+        if self._did_change is False:
+            _logger.info("no changes to save")
+            return
+
+        self.trim()
+        _logger.debug("saving cache: %s", self.filename)
+        if isinstance(self.filename, Path):
+            self.filename.parent.mkdir(parents=True, exist_ok=True)
+        with self.filename.open("wb") as f:
+            pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
+
+    def close(self) -> None:
         self.save()
 
 
-def open(filename: Path | str) -> LRUCache:
-    return LRUCache(filename=filename)
+def open(filename: Path | str) -> PersistentLRUCache:
+    return PersistentLRUCache(filename=filename)
 
 
-def _save_caches() -> None:
-    for cache in _caches_to_save:
-        cache.save()
+def _close_atexit() -> None:
+    for cache in _caches_to_close_atexit:
+        cache.close()
 
 
-atexit.register(_save_caches)
+atexit.register(_close_atexit)
