@@ -264,7 +264,8 @@ def open(filename: Path | str) -> PersistentLRUCache:
 
 def _close_atexit() -> None:
     for cache in _caches_to_close_atexit:
-        cache.close()
+        if not cache._closed:
+            cache.close()
 
 
 atexit.register(_close_atexit)
