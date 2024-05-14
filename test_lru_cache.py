@@ -34,6 +34,12 @@ def test_item_del(cache: LRUCache) -> None:
     assert cache["key"] is None
 
 
+def test_repr(cache: LRUCache) -> None:
+    assert repr(cache) == "<LRUCache 0 items, 45 bytes>"
+    cache["key"] = 1
+    assert repr(cache) == "<LRUCache 1 items, 54 bytes>"
+
+
 def test_contains(cache: LRUCache) -> None:
     assert "key" not in cache
     cache["key"] = 1

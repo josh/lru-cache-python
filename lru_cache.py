@@ -56,6 +56,11 @@ class LRUCache(MutableMapping[Hashable, Any]):
         if save_on_exit:
             _caches_to_save.append(self)
 
+    def __repr__(self) -> str:
+        count = len(self)
+        size = self.bytesize()
+        return f"<LRUCache {count} items, {size} bytes>"
+
     def __contains__(self, key: Hashable) -> bool:
         """Return True if key is in the cache."""
         return key in self._data
