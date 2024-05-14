@@ -258,8 +258,16 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
         self._closed = True
 
 
-def open(filename: Path | str) -> PersistentLRUCache:
-    return PersistentLRUCache(filename=filename)
+def open(
+    filename: Path | str,
+    max_items: int = DEFAULT_MAX_ITEMS,
+    max_bytesize: int = DEFAULT_MAX_BYTESIZE,
+) -> PersistentLRUCache:
+    return PersistentLRUCache(
+        filename=filename,
+        max_items=max_items,
+        max_bytesize=max_bytesize,
+    )
 
 
 def _close_atexit() -> None:
