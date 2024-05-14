@@ -34,9 +34,9 @@ jobs:
           import logging
 
           import lru_cache
-          
+
           logging.basicConfig(level=logging.DEBUG)
-          
+
           with lru_cache.open("cache.pickle") as cache:
               count = cache["count"] or 0
               count += 1
