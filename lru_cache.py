@@ -45,6 +45,7 @@ class LRUCache(MutableMapping[Hashable, Any]):
     _max_items: int
     _max_bytesize: int
     _did_change: bool = False
+    _needs_trim: bool = True
 
     def __init__(
         self,
@@ -95,6 +96,7 @@ class LRUCache(MutableMapping[Hashable, Any]):
         """Set value for key in cache."""
         _logger.debug("set key=%s", key)
         self._did_change = True
+        self._needs_trim = True
         self._data[key] = value
         self._data.move_to_end(key, last=True)
 
@@ -132,10 +134,14 @@ class LRUCache(MutableMapping[Hashable, Any]):
         """Clear the cache."""
         _logger.debug("clear")
         self._did_change = True
+        self._needs_trim = False
         self._data.clear()
 
     def trim(self) -> int:
         """Trim the cache to fit within the max bytesize."""
+        if not self._needs_trim:
+            _logger.debug("no need to trim")
+            return 0
         sorted_keys = list(self._data.keys())
         count = 0
         buf = BytesIO()
@@ -149,6 +155,7 @@ class LRUCache(MutableMapping[Hashable, Any]):
             self._did_change = True
             del self._data[key]
             count += 1
+        self._needs_trim = False
         if count > 0:
             _logger.debug("trimmed %i items", count)
         return count
@@ -167,6 +174,7 @@ class LRUCache(MutableMapping[Hashable, Any]):
             _logger.debug("miss key=%s", key)
             value = load_value()
             self._did_change = True
+            self._needs_trim = True
             self._data[key] = value
             return value
         else:
