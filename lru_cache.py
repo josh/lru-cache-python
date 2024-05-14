@@ -198,6 +198,7 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
     """A managed LRUCache that is persist to disk."""
 
     filename: Path
+    _closed: bool = False
 
     def __init__(
         self,
@@ -211,6 +212,10 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
         self._load()
         if close_on_exit:
             _caches_to_close_atexit.add(self)
+
+    def __del__(self) -> None:
+        if not self._closed:
+            self.close()
 
     def __enter__(self) -> "LRUCache":
         return self
@@ -246,7 +251,11 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
             pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
 
     def close(self) -> None:
+        """Close the cache and save it to disk."""
+        if self._closed:
+            raise ValueError("cache is closed")
         self.save()
+        self._closed = True
 
 
 def open(filename: Path | str) -> PersistentLRUCache:
