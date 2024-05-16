@@ -20,6 +20,7 @@ from types import TracebackType
 from typing import Any, ParamSpec, TypeVar
 from weakref import WeakSet
 
+__version__ = "0.1.0"
 __author__ = "Joshua Peek"
 __url__ = "https://raw.githubusercontent.com/josh/py-lru-cache/main/lru_cache.py"
 __license__ = "MIT"
