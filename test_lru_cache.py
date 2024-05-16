@@ -8,12 +8,12 @@ from lru_cache import LRUCache, PersistentLRUCache
 
 @pytest.fixture()
 def cache() -> LRUCache:
-    return LRUCache(max_bytesize=1024)
+    return LRUCache()
 
 
 @pytest.fixture()
 def file_cache(tmp_path: Path) -> PersistentLRUCache:
-    return PersistentLRUCache(filename=tmp_path / "cache.pickle", max_bytesize=1024)
+    return PersistentLRUCache(filename=tmp_path / "cache.pickle")
 
 
 def test_eq(cache: LRUCache) -> None:
@@ -122,7 +122,25 @@ def test_get_or_load(cache: LRUCache) -> None:
     assert len(cache) == 1
 
 
-def test_trim(cache: LRUCache) -> None:
+def test_trim_max_items() -> None:
+    cache = LRUCache(max_items=10)
+    for i in range(20):
+        cache[i] = i
+    assert len(cache) > 10
+    cache.trim()
+    assert len(cache) <= 10
+
+
+def test_trim_max_items_zero() -> None:
+    cache = LRUCache(max_items=0)
+    for i in range(3):
+        cache[i] = i
+    cache.trim()
+    assert len(cache) == 0
+
+
+def test_trim_max_bytesize() -> None:
+    cache = LRUCache(max_bytesize=1024)
     for i in range(300):
         cache[i] = i
     assert cache.bytesize() > 1024

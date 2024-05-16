@@ -140,21 +140,26 @@ class LRUCache(MutableMapping[Hashable, Any]):
     def trim(self) -> int:
         """Trim the cache to fit within the max bytesize."""
         if not self._needs_trim:
-            _logger.debug("no need to trim")
+            _logger.debug("skipping trim")
             return 0
+
         sorted_keys = list(self._data.keys())
         count = 0
-        buf = BytesIO()
-        while True:
-            buf.seek(0)
-            p = pickle.Pickler(buf, protocol=pickle.HIGHEST_PROTOCOL)
-            p.dump(self._data)
-            if buf.tell() < self._max_bytesize:
-                break
+
+        def _pop() -> None:
+            nonlocal count
             key = sorted_keys.pop(0)
             self._did_change = True
             del self._data[key]
             count += 1
+
+        while len(self._data) > self._max_items:
+            _pop()
+
+        buf = BytesIO()
+        while self._bytesize(buf) > self._max_bytesize:
+            _pop()
+
         self._needs_trim = False
         if count > 0:
             _logger.debug("trimmed %i items", count)
@@ -162,7 +167,10 @@ class LRUCache(MutableMapping[Hashable, Any]):
 
     def bytesize(self) -> int:
         """Return the persisted size of the cache in bytes."""
-        buf = BytesIO()
+        return self._bytesize(BytesIO())
+
+    def _bytesize(self, buf: BytesIO) -> int:
+        buf.seek(0)
         p = pickle.Pickler(buf, protocol=pickle.HIGHEST_PROTOCOL)
         p.dump(self._data)
         return buf.tell()
