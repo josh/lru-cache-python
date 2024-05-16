@@ -239,12 +239,19 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
 
     def _load(self) -> None:
         if not self.filename.exists():
-            _logger.debug("persisted cache not found: %s", self.filename)
+            _logger.debug("cache not found: %s", self.filename)
             return
 
         with self.filename.open("rb") as f:
             self._data.update(pickle.load(f))
         self._did_change = False
+
+        _logger.info(
+            "loaded cache: %s (%i items, %i bytes)",
+            self.filename,
+            len(self),
+            self.bytesize(),
+        )
 
     def save(self) -> None:
         """Save the cache to disk."""
@@ -253,7 +260,12 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
             return
 
         self.trim()
-        _logger.debug("saving cache: %s", self.filename)
+        _logger.info(
+            "saving cache: %s (%i items, %i bytes)",
+            self.filename,
+            len(self),
+            self.bytesize(),
+        )
         self.filename.parent.mkdir(parents=True, exist_ok=True)
         with self.filename.open("wb") as f:
             pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
