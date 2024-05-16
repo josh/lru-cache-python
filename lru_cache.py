@@ -27,7 +27,7 @@ __license__ = "MIT"
 __copyright__ = "Copyright 2024 Joshua Peek"
 
 _logger = logging.getLogger("lru_cache")
-_caches_to_close_atexit: WeakSet["PersistentLRUCache"] = WeakSet()
+_caches: WeakSet["PersistentLRUCache"] = WeakSet()
 
 _SENTINEL = object()
 _KWD_MARK = ("__KWD_MARK__",)
@@ -207,23 +207,21 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
     """A managed LRUCache that is persist to disk."""
 
     filename: Path
-    _closed: bool = False
+    closed: bool = False
 
     def __init__(
         self,
         filename: Path | str,
         max_items: int = DEFAULT_MAX_ITEMS,
         max_bytesize: int = DEFAULT_MAX_BYTESIZE,
-        close_on_exit: bool = True,
     ) -> None:
         self.filename = Path(filename)
         super().__init__(max_items=max_items, max_bytesize=max_bytesize)
         self._load()
-        if close_on_exit:
-            _caches_to_close_atexit.add(self)
+        _caches.add(self)
 
     def __del__(self) -> None:
-        if not self._closed:
+        if not self.closed:
             self.close()
 
     def __enter__(self) -> "LRUCache":
@@ -272,8 +270,8 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
 
     def close(self) -> None:
         """Close the cache and save it to disk."""
-        if self._closed:
-            raise ValueError("cache is closed")
+        if self.closed:
+            raise ValueError("cache is already closed")
         self.save()
         self._closed = True
 
@@ -291,9 +289,11 @@ def open(
 
 
 def _close_atexit() -> None:
-    for cache in _caches_to_close_atexit:
-        if not cache._closed:
-            cache.close()
+    open_caches = [cache for cache in _caches if not cache.closed]
+    if open_caches:
+        _logger.warning("closing open %d caches", len(open_caches))
+    for cache in open_caches:
+        cache.close()
 
 
 atexit.register(_close_atexit)
