@@ -267,6 +267,7 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
         self.filename.parent.mkdir(parents=True, exist_ok=True)
         with self.filename.open("wb") as f:
             pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
+        self._did_change = False
 
     def close(self) -> None:
         """Close the cache and save it to disk."""
