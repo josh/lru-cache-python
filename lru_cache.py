@@ -274,7 +274,7 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
         if self.closed:
             raise ValueError("cache is already closed")
         self.save()
-        self._closed = True
+        self.closed = True
 
 
 def open(
