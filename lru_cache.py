@@ -17,7 +17,7 @@ from functools import _make_key, update_wrapper
 from io import BytesIO
 from pathlib import Path
 from types import TracebackType
-from typing import Any, ParamSpec, TypeVar, cast
+from typing import Any, ParamSpec, TypeVar
 from weakref import WeakSet
 
 __author__ = "Joshua Peek"
@@ -31,6 +31,7 @@ _caches_to_close_atexit: WeakSet["PersistentLRUCache"] = WeakSet()
 _SENTINEL = object()
 _KWD_MARK = ("__KWD_MARK__",)
 
+T = TypeVar("T")
 P = ParamSpec("P")
 R = TypeVar("R")
 
@@ -175,9 +176,9 @@ class LRUCache(MutableMapping[Hashable, Any]):
         p.dump(self._data)
         return buf.tell()
 
-    def get_or_load(self, key: Hashable, load_value: Callable[[], Any]) -> Any:
+    def get_or_load(self, key: Hashable, load_value: Callable[[], T]) -> T:
         """Get value for key in cache, else load the value and store it in the cache."""
-        value = self._data.get(key, _SENTINEL)
+        value: T = self._data.get(key, _SENTINEL)
         if value is _SENTINEL:
             _logger.debug("miss key=%s", key)
             value = load_value()
@@ -196,8 +197,7 @@ class LRUCache(MutableMapping[Hashable, Any]):
             keys = _make_key(args=args, kwds=kwds, typed=True, kwd_mark=_KWD_MARK)
             assert isinstance(keys, list)
             key = (func.__module__, func.__name__, *keys)
-            value = self.get_or_load(key, lambda: func(*args, **kwds))
-            return cast(R, value)
+            return self.get_or_load(key, lambda: func(*args, **kwds))
 
         return update_wrapper(_inner, func)
 
