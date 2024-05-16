@@ -164,7 +164,7 @@ class LRUCache(MutableMapping[Hashable, Any]):
 
         self._needs_trim = False
         if count > 0:
-            _logger.debug("trimmed %i items", count)
+            _logger.warning("trimmed %i items", count)
         return count
 
     def bytesize(self) -> int:
