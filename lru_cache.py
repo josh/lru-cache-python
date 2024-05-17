@@ -250,7 +250,7 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
     def save(self) -> None:
         """Save the cache to disk."""
         if self._did_change is False:
-            _logger.info("no changes to save")
+            _logger.debug("no changes to save")
             return
 
         self.trim()
