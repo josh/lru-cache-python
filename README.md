@@ -2,7 +2,7 @@
 
 A simple persisted LRU cache Python module.
 
-Pretty much [`shelve`](https://docs.python.org/3/library/shelve.html), but self evicting. Design to work well when persisted data between GitHub Action runs with [actions/cache](https://github.com/actions/cache).
+Pretty much [`shelve`](https://docs.python.org/3/library/shelve.html), but self evicting. Design to work well when persisting data between GitHub Action runs with [actions/cache](https://github.com/actions/cache).
 
 ## Usage
 
