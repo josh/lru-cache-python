@@ -82,17 +82,13 @@ class LRUCache(MutableMapping[Hashable, Any]):
         """Return the number of items in the cache."""
         return len(self._data)
 
-    def __getitem__(self, key: Hashable) -> Any | None:
+    def __getitem__(self, key: Hashable) -> Any:
         """Return value for key in cache, else None."""
-        value = self._data.get(key, _SENTINEL)
-        if value is _SENTINEL:
-            _logger.debug("miss key=%s", key)
-            return None
-        else:
-            _logger.debug("hit key=%s", key)
-            self._did_change = True
-            self._data.move_to_end(key, last=True)
-            return value
+        value = self._data[key]
+        _logger.debug("hit key=%s", key)
+        self._did_change = True
+        self._data.move_to_end(key, last=True)
+        return value
 
     def __setitem__(self, key: Hashable, value: Any) -> None:
         """Set value for key in cache."""

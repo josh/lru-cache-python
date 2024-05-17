@@ -28,7 +28,7 @@ def test_hash(cache: LRUCache) -> None:
 
 
 def test_item_get_set(cache: LRUCache) -> None:
-    assert cache["key"] is None
+    pytest.raises(KeyError, lambda: cache["key"])
 
     cache["key"] = 1
     assert cache["key"] == 1
@@ -42,7 +42,7 @@ def test_item_del(cache: LRUCache) -> None:
     cache["key"] = 1
     assert cache["key"] == 1
     del cache["key"]
-    assert cache["key"] is None
+    pytest.raises(KeyError, lambda: cache["key"])
 
 
 def test_repr(cache: LRUCache) -> None:
