@@ -9,7 +9,7 @@ Pretty much [`shelve`](https://docs.python.org/3/library/shelve.html), but self 
 ```python
 import lru_cache
 
-with lru_cache.open("cache.pickle", max_bytesize=5 * 1024) as cache:
+with lru_cache.open("cache.pickle", max_bytesize=lru_cache.bytesize(kb=5)) as cache:
     cache["answer"] = 42
 ```
 

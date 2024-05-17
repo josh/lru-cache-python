@@ -37,8 +37,28 @@ T = TypeVar("T")
 P = ParamSpec("P")
 R = TypeVar("R")
 
+
+def bytesize(gb: int = 0, mb: int = 0, kb: int = 0, b: int = 0) -> int:
+    return gb << 30 | mb << 20 | kb << 10 | b
+
+
+def format_bytesize(size: int) -> str:
+    """Formats an integer representing a byte size into a human-readable string."""
+    s: float = float(size)
+    if s < 1024:
+        return f"{s} B"
+    s /= 1024
+    if s < 1024:
+        return f"{s:.1f} KB"
+    s /= 1024
+    if s < 1024:
+        return f"{s:.1f} MB"
+    s /= 1024
+    return f"{s:.1f} GB"
+
+
 DEFAULT_MAX_ITEMS = sys.maxsize
-DEFAULT_MAX_BYTESIZE = 1024 * 1024 * 1024  # 1 GB
+DEFAULT_MAX_BYTESIZE = bytesize(mb=10)
 
 
 class LRUCache(MutableMapping[Hashable, Any]):
@@ -62,8 +82,8 @@ class LRUCache(MutableMapping[Hashable, Any]):
 
     def __repr__(self) -> str:
         count = len(self)
-        size = self.bytesize()
-        return f"<LRUCache {count} items, {size} bytes>"
+        size = format_bytesize(self.bytesize())
+        return f"<LRUCache {count} items, {size}>"
 
     def __eq__(self, other: Any) -> bool:
         return other is self
@@ -252,10 +272,10 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
         self._did_change = False
 
         _logger.info(
-            "loaded cache: '%s' (%i items, %i bytes)",
+            "loaded cache: '%s' (%i items, %s bytes)",
             self.filename,
             len(self),
-            self.bytesize(),
+            format_bytesize(self.bytesize()),
         )
 
     def save(self) -> None:
@@ -266,10 +286,10 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
 
         self.trim()
         _logger.info(
-            "saving cache: '%s' (%i items, %i bytes)",
+            "saving cache: '%s' (%i items, %s)",
             self.filename,
             len(self),
-            self.bytesize(),
+            format_bytesize(self.bytesize()),
         )
         f = self._open()
         f.seek(0)

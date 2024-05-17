@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 import lru_cache
-from lru_cache import LRUCache, PersistentLRUCache
+from lru_cache import LRUCache, PersistentLRUCache, bytesize, format_bytesize
 
 
 @pytest.fixture()
@@ -46,9 +46,9 @@ def test_item_del(cache: LRUCache) -> None:
 
 
 def test_repr(cache: LRUCache) -> None:
-    assert repr(cache) == "<LRUCache 0 items, 45 bytes>"
+    assert repr(cache) == "<LRUCache 0 items, 45.0 B>"
     cache["key"] = 1
-    assert repr(cache) == "<LRUCache 1 items, 54 bytes>"
+    assert repr(cache) == "<LRUCache 1 items, 54.0 B>"
 
 
 def test_contains(cache: LRUCache) -> None:
@@ -232,3 +232,17 @@ def test_open_with_manual_saves(tmp_path: Path) -> None:
 
     with lru_cache.open(tmp_path / "cache.pickle") as cache:
         assert cache["key"] == 2
+
+
+def test_bytesize() -> None:
+    assert bytesize(b=1) == 1
+    assert bytesize(kb=1) == 1024
+    assert bytesize(mb=1) == 1048576
+    assert bytesize(gb=1) == 1073741824
+
+
+def test_format_bytesize() -> None:
+    assert format_bytesize(bytesize(b=42)) == "42.0 B"
+    assert format_bytesize(bytesize(kb=42)) == "42.0 KB"
+    assert format_bytesize(bytesize(mb=42)) == "42.0 MB"
+    assert format_bytesize(bytesize(gb=42)) == "42.0 GB"
