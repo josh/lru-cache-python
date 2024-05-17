@@ -6,7 +6,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 
 [tool.setuptools]
-py-modules = ["lru_cache", "py.typed"]
+py-modules = ["lru_cache"]
 
 [tool.ruff.lint]
 extend-select = ["I", "UP", "LOG", "G", "PT", "SIM", "TCH"]
