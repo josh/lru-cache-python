@@ -7,6 +7,7 @@ license = {file = "LICENSE"}
 
 [tool.setuptools]
 py-modules = ["lru_cache"]
+package-data = ["py.typed"]
 
 [tool.ruff.lint]
 extend-select = ["I", "UP", "LOG", "G", "PT", "SIM", "TCH"]
