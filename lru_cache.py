@@ -1,5 +1,6 @@
 import atexit
 import contextlib
+import io
 import logging
 import pickle
 import sys
@@ -202,6 +203,7 @@ class LRUCache(MutableMapping[Hashable, Any]):
 class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]):
     """A managed LRUCache that is persist to disk."""
 
+    _file: io.BufferedRandom | None = None
     filename: Path
     closed: bool = False
 
@@ -220,7 +222,7 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
         if not self.closed:
             self.close()
 
-    def __enter__(self) -> "LRUCache":
+    def __enter__(self) -> "PersistentLRUCache":
         return self
 
     def __exit__(
@@ -231,17 +233,26 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
     ) -> None:
         self.close()
 
+    def _open(self) -> io.BufferedRandom:
+        if self._file:
+            return self._file
+        self.filename.parent.mkdir(parents=True, exist_ok=True)
+        self.filename.touch(exist_ok=True)
+        self._file = self.filename.open(mode="rb+")
+        _logger.debug("opened cache %d '%s'", self._file.fileno(), self.filename)
+        return self._file
+
     def _load(self) -> None:
         if not self.filename.exists():
-            _logger.debug("cache not found: %s", self.filename)
+            _logger.debug("cache not found: '%s'", self.filename)
             return
 
-        with self.filename.open("rb") as f:
-            self._data.update(pickle.load(f))
+        f = self._open()
+        self._data.update(pickle.load(f))
         self._did_change = False
 
         _logger.info(
-            "loaded cache: %s (%i items, %i bytes)",
+            "loaded cache: '%s' (%i items, %i bytes)",
             self.filename,
             len(self),
             self.bytesize(),
@@ -255,21 +266,27 @@ class PersistentLRUCache(LRUCache, contextlib.AbstractContextManager["LRUCache"]
 
         self.trim()
         _logger.info(
-            "saving cache: %s (%i items, %i bytes)",
+            "saving cache: '%s' (%i items, %i bytes)",
             self.filename,
             len(self),
             self.bytesize(),
         )
-        self.filename.parent.mkdir(parents=True, exist_ok=True)
-        with self.filename.open("wb") as f:
-            pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
+        f = self._open()
+        f.seek(0)
+        pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
         self._did_change = False
 
     def close(self) -> None:
         """Close the cache and save it to disk."""
         if self.closed:
+            assert self._file is None, "file should be closed"
             raise ValueError("cache is already closed")
         self.save()
+        if self._file:
+            fd = self._file.fileno()
+            self._file.close()
+            self._file = None
+            _logger.debug("closed cache %d '%s'", fd, self.filename)
         self.closed = True
 
 

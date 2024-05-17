@@ -211,3 +211,24 @@ def test_open_doesnt_write_empty_cache(tmp_path: Path) -> None:
     with lru_cache.open(path) as cache:
         assert len(cache) == 0
     assert not path.exists()
+
+
+def test_open_with_manual_saves(tmp_path: Path) -> None:
+    path = tmp_path / "cache.pickle"
+    assert not path.exists()
+
+    cache = lru_cache.open(path)
+    cache["key"] = 1
+
+    assert not path.exists()
+    cache.save()
+    assert path.exists()
+
+    cache["key"] = 2
+    cache.save()
+    assert path.exists()
+
+    cache.close()
+
+    with lru_cache.open(tmp_path / "cache.pickle") as cache:
+        assert cache["key"] == 2
