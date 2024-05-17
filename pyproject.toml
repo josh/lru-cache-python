@@ -2,9 +2,11 @@
 name = "lru-cache"
 version = "0.1.0"
 requires-python = ">=3.10"
-py_modules = ["lru_cache"]  
 readme = "README.md"
 license = {file = "LICENSE"}
+
+[tool.setuptools]
+py-modules = ["lru_cache"]  
 
 [tool.ruff.lint]
 extend-select = ["I", "UP", "LOG", "G", "PT", "SIM", "TCH"]
