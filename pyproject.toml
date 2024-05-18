@@ -5,6 +5,9 @@ requires-python = ">=3.10"
 readme = "README.md"
 license = {file = "LICENSE"}
 
+[project.optional-dependencies]
+test = ["pytest==8.2.0"]
+
 [tool.setuptools]
 py-modules = ["lru_cache"]
 
