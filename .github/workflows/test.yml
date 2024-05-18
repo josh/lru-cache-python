@@ -78,4 +78,4 @@ jobs:
 
       - name: mypy
         run: |
-          mypy --strict .
+          mypy .

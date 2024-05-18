@@ -1,22 +1,38 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "lru-cache"
 version = "0.1.0"
-requires-python = ">=3.10"
+description = "Persisted LRU cache Python module"
 readme = "README.md"
-license = {file = "LICENSE"}
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Joshua Peek", email = "josh@users.noreply.github.com" }]
+maintainers = [
+    { name = "Joshua Peek", email = "josh@users.noreply.github.com" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+]
+dependencies = []
 
 [project.optional-dependencies]
-test = [
-    "mypy==1.10.0",
-    "pytest==8.2.0",
-    "ruff==0.4.4",
-]
+test = ["mypy==1.10.0", "pytest==8.2.0", "ruff==0.4.4"]
 
 [tool.setuptools]
 py-modules = ["lru_cache"]
 
-[tool.setuptools.package-data]
-lru_cache = ["py.typed"]
-
 [tool.ruff.lint]
 extend-select = ["I", "UP", "LOG", "G", "PT", "SIM", "TCH"]
+
+[tool.mypy]
+strict = true
