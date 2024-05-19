@@ -43,5 +43,5 @@ $ pip install git+https://github.com/josh/py-lru-cache.git
 or just download the file:
 
 ```sh
-$ curl https://github.com/josh/py-lru-cache/releases/download/latest/lru_cache.py >lru_cache.py
+$ curl -L https://github.com/josh/py-lru-cache/releases/latest/download/lru_cache.py >lru_cache.py
 ```
