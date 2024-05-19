@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lru-cache"
-version = "0.1.2"
+version = "0.1.3"
 description = "Persisted LRU cache Python module"
 readme = "README.md"
 requires-python = ">=3.10"
