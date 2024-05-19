@@ -23,9 +23,8 @@ from weakref import WeakSet
 
 __version__ = "0.1.0"
 __author__ = "Joshua Peek"
-__url__ = "https://raw.githubusercontent.com/josh/py-lru-cache/main/lru_cache.py"
-__license__ = "MIT"
 __copyright__ = "Copyright 2024 Joshua Peek"
+__license__ = "MIT"
 
 _logger = logging.getLogger("lru_cache")
 _caches: WeakSet["PersistentLRUCache"] = WeakSet()
