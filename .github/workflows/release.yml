@@ -37,5 +37,7 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: |
+            lru_cache.py
+            dist/*
           prerelease: true
