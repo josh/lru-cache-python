@@ -37,11 +37,11 @@ def incr(cache: lru_cache.LRUCache):
 Not officially published on Python Package Index (PyPI), but you can install it directly from GitHub:
 
 ```sh
-$ pip install git+https://github.com/josh/py-lru-cache.git
+$ pip install git+https://github.com/josh/lru-cache-py.git
 ```
 
 or just download the file:
 
 ```sh
-$ curl -L https://github.com/josh/py-lru-cache/releases/latest/download/lru_cache.py >lru_cache.py
+$ curl -L https://github.com/josh/lru-cache-py/releases/latest/download/lru_cache.py >lru_cache.py
 ```
