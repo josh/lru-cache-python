@@ -51,7 +51,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e '.[test]'
+          pip install -e '.[dev]'
 
       - name: Run tests
         run: |
@@ -75,7 +75,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e '.[test]'
+          pip install -e '.[dev]'
 
       - name: Ruff Formatter
         run: |
@@ -100,7 +100,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e '.[test]'
+          pip install -e '.[dev]'
 
       - name: mypy
         run: |
