@@ -9,10 +9,8 @@ description = "Persisted LRU cache Python module"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "Joshua Peek", email = "josh@users.noreply.github.com" }]
-maintainers = [
-    { name = "Joshua Peek", email = "josh@users.noreply.github.com" },
-]
+authors = [{ name = "Joshua Peek" }]
+maintainers = [{ name = "Joshua Peek" }]
 classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: MIT License",
