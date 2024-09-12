@@ -21,7 +21,7 @@ from types import TracebackType
 from typing import Any, ParamSpec, TypeVar
 from weakref import WeakSet
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "Joshua Peek"
 __copyright__ = "Copyright 2024 Joshua Peek"
 __license__ = "MIT"
