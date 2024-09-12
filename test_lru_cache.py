@@ -6,12 +6,12 @@ import lru_cache
 from lru_cache import LRUCache, PersistentLRUCache, bytesize, format_bytesize
 
 
-@pytest.fixture()
+@pytest.fixture
 def cache() -> LRUCache:
     return LRUCache()
 
 
-@pytest.fixture()
+@pytest.fixture
 def file_cache(tmp_path: Path) -> PersistentLRUCache:
     return PersistentLRUCache(filename=tmp_path / "cache.pickle")
 
