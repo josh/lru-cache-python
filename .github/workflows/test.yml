@@ -12,20 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "pyproject.toml"
-          cache: pip
-          cache-dependency-path: pyproject.toml
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install dependencies
-        run: |
-          pip install build
+        run: uv sync
 
       - name: Build package
         run: |
-          python -m build
+          uv run python -m build
 
       - uses: actions/upload-artifact@v4
         with:
@@ -42,20 +36,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: pyproject.toml
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install dependencies
-        run: |
-          pip install -e '.[dev]'
+        run: uv sync
 
       - name: Run tests
         run: |
-          pytest
+          uv run pytest
 
   ruff:
     runs-on: ubuntu-24.04
@@ -66,24 +54,18 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "pyproject.toml"
-          cache: "pip"
-          cache-dependency-path: pyproject.toml
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install dependencies
-        run: |
-          pip install -e '.[dev]'
+        run: uv sync
 
       - name: Ruff Formatter
         run: |
-          ruff format --diff .
+          uv run ruff format --diff .
 
       - name: Ruff Linter
         run: |
-          ruff check .
+          uv run ruff check .
 
   mypy:
     runs-on: ubuntu-24.04
@@ -91,17 +73,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "pyproject.toml"
-          cache: "pip"
-          cache-dependency-path: pyproject.toml
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install dependencies
-        run: |
-          pip install -e '.[dev]'
+        run: uv sync
 
       - name: mypy
         run: |
-          mypy .
+          uv run mypy .
