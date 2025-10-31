@@ -4,7 +4,7 @@ requires = [ "hatchling" ]
 
 [project]
 name = "lru-cache"
-version = "1.0.1"
+version = "1.0.2"
 description = "Persisted LRU cache Python module"
 readme = "README.md"
 license = "MIT"
