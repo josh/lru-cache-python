@@ -212,7 +212,7 @@ class LRUCache(MutableMapping[Hashable, Any]):
     def __call__(self, func: Callable[P, R]) -> Callable[P, R]:
         def _inner(*args: P.args, **kwds: P.kwargs) -> R:
             keys = _make_key(args=args, kwds=kwds, typed=True, kwd_mark=_KWD_MARK)
-            assert isinstance(keys, list)
+            assert isinstance(keys, (list, tuple))
             key = (func.__module__, func.__name__, *keys)
             return self.get_or_load(key, lambda: func(*args, **kwds))
 
