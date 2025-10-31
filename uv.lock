@@ -79,7 +79,7 @@ dev = [
 dev = [
     { name = "build", specifier = ">=1,<2" },
     { name = "mypy", specifier = ">=1,<2" },
-    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest", specifier = ">=8,<9" },
     { name = "ruff", specifier = ">=0.14.3" },
 ]
 
