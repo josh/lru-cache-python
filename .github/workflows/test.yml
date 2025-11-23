@@ -7,7 +7,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
 
     steps:
       - uses: actions/checkout@v5
@@ -27,7 +27,7 @@ jobs:
           path: dist/*
 
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
 
     strategy:
       fail-fast: false
