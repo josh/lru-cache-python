@@ -26,7 +26,7 @@ classifiers = [
 dev = [
     "build>=1,<2",
     "mypy>=1,<2",
-    "pytest>=8,<10",
+    "pytest>=9.0.3,<10",
     "ruff>=0.12,<2",
 ]
 
