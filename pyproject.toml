@@ -33,12 +33,10 @@ dev = [
 [tool.setuptools]
 py-modules = [ "lru_cache" ]
 
-[tool.hatch.build.targets.wheel.force-include]
-"lru_cache.py" = "lru_cache/__init__.py"
-"py.typed" = "lru_cache/py.typed"
-
-[tool.hatch.build.targets.sdist]
-include = [ "lru_cache.py", "py.typed" ]
+[tool.hatch]
+build.targets.wheel.force-include."lru_cache.py" = "lru_cache/__init__.py"
+build.targets.wheel.force-include."py.typed" = "lru_cache/py.typed"
+build.targets.sdist.include = [ "lru_cache.py", "py.typed" ]
 
 [tool.ruff]
 lint.extend-select = [ "G", "I", "LOG", "PT", "SIM", "TCH", "UP" ]
